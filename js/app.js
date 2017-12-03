@@ -1,3 +1,4 @@
+'use strict';
 // Enemies our player must avoid
 var Enemy = function (speed, maxDistance) {
     // Variables applied to each of our instances go here,
@@ -7,11 +8,19 @@ var Enemy = function (speed, maxDistance) {
     // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
 
-    this.x;
-    this.y;
+    let randomRow = Math.floor((Math.random() * 3));
+    this.y = rowHeight + (randomRow * rowHeight);
+    let randomX = Math.floor(Math.random() * 500);
+    this.x = randomX;
+    let randomDistance = Math.floor(Math.random() * 1000);
+    if (randomDistance < 600) {
+        this.maxDistance = randomDistance + 600;
+    } else {
+        this.maxDistance = randomDistance;
+    }
 
-    this.speed;
-    this.maxDistance;
+    let randomSpeed = Math.floor((Math.random() * 40));
+    this.speed = randomSpeed + 80;
 };
 
 // Update the enemy's position, required method for game
@@ -26,10 +35,8 @@ Enemy.prototype.update = function (dt) {
     else {
         this.x = this.x + dt * this.speed;
     }
-
-    let enemyLocationStr = (this.x + this.columnWidth).toString() + "," + this.y;
-
-    checkCollisions(this);
+    
+    this.checkCollisions();
 };
 
 // Draw the enemy on the screen, required method for game
@@ -37,22 +44,33 @@ Enemy.prototype.render = function () {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
-// initiate an enemy instance with random initial values(location, speed, distance that goes across the screen)
-Enemy.prototype.initiate = function () {
-    let randomRow = Math.floor((Math.random() * 3));
-    this.y = rowHeight + (randomRow * rowHeight);
-    let randomX = Math.floor(Math.random() * 500);
-    this.x = randomX;
-    let randomDistance = Math.floor(Math.random() * 1000);
-    if (randomDistance < 600) {
-        this.maxDistance = randomDistance + 600;
-    } else {
-        this.maxDistance = randomDistance;
+// checks player's and given enemy location whether there is a collision
+// Parameter: enemy that will be checked for collision.
+Enemy.prototype.checkCollisions = function () {
+    let enemyLocation;
+
+    let playerLocation = (player.y / this.rowHeight * 5) + (player.x / this.columnWidth);
+
+    if (this.x + this.columnWidth < 0) {
+        //not in board
+        enemyLocation = -1;
+    }
+    else if (this.x > 5 * this.columnWidth) {
+        //not in board
+        enemyLocation = -1;
+    }
+    else if (this.x + this.columnWidth < this.columnWidth) {
+        // in the first columns
+        enemyLocation = Math.floor((this.y / this.rowHeight * 5));
+    }
+    else {
+        enemyLocation = Math.floor((this.y / this.rowHeight * 5) + (this.x / this.columnWidth));
     }
 
-    let randomSpeed = Math.floor((Math.random() * 40));
-    this.speed = randomSpeed + 80;
-}
+    if (enemyLocation === playerLocation) {
+        this.initiateGame();
+    }
+};
 
 // Player object
 var Player = function () {
@@ -66,7 +84,7 @@ var Player = function () {
     this.y = 415;
 
     this.score = 0;
-}
+};
 
 // Updates player object properties
 Player.prototype.update = function () {
@@ -81,7 +99,7 @@ Player.prototype.render = function () {
 Player.prototype.handleInput = function (keyStr) {
     switch (keyStr) {
         case 'left':
-            if (this.x >= 100 && checkForRock(player.getLocation() - 1) === false) {
+            if (this.x >= 100 && this.checkForRock(this.getLocation() - 1) === false) {
                 this.x = this.x - columnWidth;
 
                 if (this.y / rowHeight < 4) {
@@ -90,7 +108,7 @@ Player.prototype.handleInput = function (keyStr) {
             }
             break;
         case 'right':
-            if (this.x < 400 && checkForRock(player.getLocation() + 1) === false) {
+            if (this.x < 400 && this.checkForRock(this.getLocation() + 1) === false) {
                 this.x = this.x + columnWidth;
 
                 if (this.y / rowHeight < 4) {
@@ -99,7 +117,7 @@ Player.prototype.handleInput = function (keyStr) {
             }
             break;
         case 'up':
-            if (this.y >= 80 && checkForRock(player.getLocation() - 5) === false) {
+            if (this.y >= 80 && this.checkForRock(this.getLocation() - 5) === false) {
                 this.y = this.y - rowHeight;
 
                 if (this.y / rowHeight < 4) {
@@ -109,7 +127,7 @@ Player.prototype.handleInput = function (keyStr) {
 
             break;
         case 'down':
-            if (this.y < 400 && checkForRock(player.getLocation() + 5) === false) {
+            if (this.y < 400 && this.checkForRock(this.getLocation() + 5) === false) {
                 if (this.y / rowHeight < 4) {
                     score++;
                 }
@@ -118,7 +136,7 @@ Player.prototype.handleInput = function (keyStr) {
             }
             break;
     }
-    checkForStar(player.getLocation());
+    this.checkForStar(this.getLocation());
     $("#score").text(score);
 
     if (this.y < 80) {
@@ -131,7 +149,29 @@ Player.prototype.handleInput = function (keyStr) {
 
 Player.prototype.getLocation = function () {
     return (this.y / rowHeight * 5) + (this.x / columnWidth);
-}
+};
+
+// checks for the move wheter applicable or not
+Player.prototype.checkForRock = function (playersNextLocation) {
+    for (let index = 0; index < rocks.length; index++) {
+        const element = rocks[index];
+        if (element.location === playersNextLocation) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+// checks for a gem
+Player.prototype.checkForStar = function (playersNextLocation) {
+    for (let index = 0; index < stars.length; index++) {
+        const element = stars[index];
+        if (element.location === playersNextLocation) {
+            score = score + 2;
+        }
+    }
+};
 
 // rock object
 var Rock = function () {
@@ -145,7 +185,7 @@ var Rock = function () {
 
     // image of the rock
     this.sprite = 'images/Rock.png';
-}
+};
 
 // Renders the rock object on the screen
 Rock.prototype.render = function () {
@@ -167,43 +207,12 @@ var Star = function () {
 
     // image of the rock
     this.sprite = 'images/Star.png';
-}
+};
 
 // Renders the star object on the screen
 Star.prototype.render = function () {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
-
-// checks player's and given enemy location whether there is a collision
-// Parameter: enemy that will be checked for collision.
-function checkCollisions(enemy) {
-
-    let enemyLocation;
-
-    let playerLocation = (player.y / this.rowHeight * 5) + (player.x / this.columnWidth);
-
-    $("#playerLocation").text(player.getLocation());
-
-    if (enemy.x + this.columnWidth < 0) {
-        //not in board
-        enemyLocation = -1;
-    }
-    else if (enemy.x > 5 * this.columnWidth) {
-        //not in board
-        enemyLocation = -1;
-    }
-    else if (enemy.x + this.columnWidth < this.columnWidth) {
-        // in the first columns
-        enemyLocation = Math.floor((enemy.y / this.rowHeight * 5));
-    }
-    else {
-        enemyLocation = Math.floor((enemy.y / this.rowHeight * 5) + (enemy.x / this.columnWidth));
-    }
-
-    if (enemyLocation === playerLocation) {
-        this.initiateGame();
-    }
-}
 
 //adds three rocks randomly to the board
 function addRocks() {
@@ -242,7 +251,6 @@ function initiateGame() {
     allEnemies = [];
     for (let index = 0; index < 5; index++) {
         var enemyInstance = new Enemy();
-        enemyInstance.initiate();
         allEnemies.push(enemyInstance);
     }
 
@@ -256,28 +264,6 @@ function initiateGame() {
 // changes the image of the player object
 function changePlayer(playerType) {
     player.sprite = 'images/' + playerType;
-}
-
-// checks for the move wheter applicable or not
-function checkForRock(playersNextLocation) {
-    for (let index = 0; index < rocks.length; index++) {
-        const element = rocks[index];
-        if (element.location === playersNextLocation) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-// checks for a gem
-function checkForStar(playersNextLocation) {
-    for (let index = 0; index < stars.length; index++) {
-        const element = stars[index];
-        if (element.location === playersNextLocation) {
-            score = score + 2;
-        }
-    }
 }
 
 // This listens for key presses and sends the keys to 

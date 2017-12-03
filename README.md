@@ -5,11 +5,14 @@ Frogger is a classic arcade game, developed by Konami in 1981. The object of the
 - Rocks prevent to move.
 - Stars give extra 2 points.
 - Any move in the danger zone give 1 point.
+- Use arrow keys to move the player.
 
 ## Getting Started
 
 - Just clone the code.
 - Open the index.html in the browser that you want.
+- Another option is to just play the game in the following website:
+    https://ozgurtuzgen.github.io/frontend-nanodegree-arcade-game/
 
 ### Prerequisites
 
