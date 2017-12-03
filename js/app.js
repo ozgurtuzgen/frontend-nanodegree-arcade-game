@@ -35,7 +35,7 @@ Enemy.prototype.update = function (dt) {
     else {
         this.x = this.x + dt * this.speed;
     }
-    
+
     this.checkCollisions();
 };
 
@@ -49,26 +49,26 @@ Enemy.prototype.render = function () {
 Enemy.prototype.checkCollisions = function () {
     let enemyLocation;
 
-    let playerLocation = (player.y / this.rowHeight * 5) + (player.x / this.columnWidth);
+    let playerLocation = (player.y / rowHeight * 5) + (player.x / columnWidth);
 
-    if (this.x + this.columnWidth < 0) {
+    if (this.x + columnWidth < 0) {
         //not in board
         enemyLocation = -1;
     }
-    else if (this.x > 5 * this.columnWidth) {
+    else if (this.x > 5 * columnWidth) {
         //not in board
         enemyLocation = -1;
     }
-    else if (this.x + this.columnWidth < this.columnWidth) {
+    else if (this.x + columnWidth < columnWidth) {
         // in the first columns
-        enemyLocation = Math.floor((this.y / this.rowHeight * 5));
+        enemyLocation = Math.floor((this.y / rowHeight * 5));
     }
     else {
-        enemyLocation = Math.floor((this.y / this.rowHeight * 5) + (this.x / this.columnWidth));
+        enemyLocation = Math.floor((this.y / rowHeight * 5) + (this.x / columnWidth));
     }
 
     if (enemyLocation === playerLocation) {
-        this.initiateGame();
+        initiateGame();
     }
 };
 
@@ -169,6 +169,10 @@ Player.prototype.checkForStar = function (playersNextLocation) {
         const element = stars[index];
         if (element.location === playersNextLocation) {
             score = score + 2;
+            let row = Math.floor(playersNextLocation / 5);
+            let column = playersNextLocation - (row * 5);
+            ctx.drawImage(Resources.get('images/stone-block.png'), column * columnWidth, row * rowHeight);
+            stars.splice(index, 1);
         }
     }
 };
