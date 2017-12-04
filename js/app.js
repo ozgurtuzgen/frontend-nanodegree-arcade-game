@@ -1,4 +1,15 @@
 'use strict';
+
+var GameEntity = function (sprite, x, y) {
+    this.sprite = sprite;
+    this.x = x;
+    this.y = y;
+};
+
+GameEntity.prototype.render = function () {
+    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+};
+
 // Enemies our player must avoid
 var Enemy = function (speed, maxDistance) {
     // Variables applied to each of our instances go here,
@@ -6,10 +17,9 @@ var Enemy = function (speed, maxDistance) {
 
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
-    this.sprite = 'images/enemy-bug.png';
 
     let randomRow = Math.floor((Math.random() * 3));
-    this.y = rowHeight + (randomRow * rowHeight);
+    let randomY = rowHeight + (randomRow * rowHeight);
     let randomX = Math.floor(Math.random() * 500);
     this.x = randomX;
     let randomDistance = Math.floor(Math.random() * 1000);
@@ -21,7 +31,11 @@ var Enemy = function (speed, maxDistance) {
 
     let randomSpeed = Math.floor((Math.random() * 40));
     this.speed = randomSpeed + 80;
+    GameEntity.call(this,'images/enemy-bug.png', randomX, randomY);
 };
+
+Enemy.prototype = Object.create(GameEntity.prototype);
+Enemy.prototype.constructor = Enemy;
 
 // Update the enemy's position, required method for game
 // Parameter: dt, a time delta between ticks
@@ -37,11 +51,6 @@ Enemy.prototype.update = function (dt) {
     }
 
     this.checkCollisions();
-};
-
-// Draw the enemy on the screen, required method for game
-Enemy.prototype.render = function () {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
 // checks player's and given enemy location whether there is a collision
@@ -77,22 +86,17 @@ var Player = function () {
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
     // this.sprite = 'images/char-cat-girl.png';
-    this.sprite = 'images/char-boy.png';
-
-    // intial position of the player
-    this.x = 202;
-    this.y = 415;
 
     this.score = 0;
+
+    GameEntity.call(this, 'images/char-boy.png', 202 , 415);
 };
+
+Player.prototype = Object.create(GameEntity.prototype);
+Player.prototype.constructor = Player;
 
 // Updates player object properties
 Player.prototype.update = function () {
-};
-
-// Renders the player object on the screen
-Player.prototype.render = function () {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
 // handles keyboard input and updates player's location
@@ -156,7 +160,7 @@ Player.prototype.getLocation = function () {
 Player.prototype.checkForRock = function (offset) {
     for (let index = 0; index < rocks.length; index++) {
         const element = rocks[index];
-        if (element.location === this.getLocation + playersNextLocation) {
+        if (element.location === this.getLocation() + offset) {
             return true;
         }
     }
@@ -170,7 +174,7 @@ Player.prototype.checkForStar = function () {
     for (let index = 0; index < stars.length; index++) {
         const element = stars[index];
         if (element.location === location) {
-            score = score + 2;
+            score = score + element.value;
             let row = Math.floor(location / 5);
             let column = location - (row * 5);
             ctx.drawImage(Resources.get('images/stone-block.png'), column * columnWidth, row * rowHeight);
@@ -181,44 +185,30 @@ Player.prototype.checkForStar = function () {
 
 // rock object
 var Rock = function () {
-    // intial position of the rock
-    this.x = -1;
-    this.y = -1;
-
     // the location block that the rock is located
     // default value is -1; means not in the board
     this.location = -1;
 
-    // image of the rock
-    this.sprite = 'images/Rock.png';
+    GameEntity.call(this,'images/Rock.png',-1,-1 );
 };
 
-// Renders the rock object on the screen
-Rock.prototype.render = function () {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-};
+Rock.prototype = Object.create(GameEntity.prototype);
+Rock.prototype.constructor = Rock;
 
 // star object
 var Star = function () {
     // the added value of the star
-    this.value = 1;
-
-    // intial position of the star
-    this.x = -1;
-    this.y = -1;
+    this.value = 2;
 
     // the location block that the rock is located
     // default value is -1; means not in the board
     this.location = -1;
 
-    // image of the rock
-    this.sprite = 'images/Star.png';
+    GameEntity.call(this,'images/Star.png',-1,-1 );
 };
 
-// Renders the star object on the screen
-Star.prototype.render = function () {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-};
+Star.prototype = Object.create(GameEntity.prototype);
+Star.prototype.constructor = Star;
 
 //adds three rocks randomly to the board
 function addRocks() {
