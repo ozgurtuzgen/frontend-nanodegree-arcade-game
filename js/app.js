@@ -99,7 +99,7 @@ Player.prototype.render = function () {
 Player.prototype.handleInput = function (keyStr) {
     switch (keyStr) {
         case 'left':
-            if (this.x >= 100 && this.checkForRock(this.getLocation() - 1) === false) {
+            if (this.x >= 100 && this.checkForRock(- 1) === false) {
                 this.x = this.x - columnWidth;
 
                 if (this.y / rowHeight < 4) {
@@ -108,7 +108,7 @@ Player.prototype.handleInput = function (keyStr) {
             }
             break;
         case 'right':
-            if (this.x < 400 && this.checkForRock(this.getLocation() + 1) === false) {
+            if (this.x < 400 && this.checkForRock(1) === false) {
                 this.x = this.x + columnWidth;
 
                 if (this.y / rowHeight < 4) {
@@ -117,7 +117,7 @@ Player.prototype.handleInput = function (keyStr) {
             }
             break;
         case 'up':
-            if (this.y >= 80 && this.checkForRock(this.getLocation() - 5) === false) {
+            if (this.y >= 80 && this.checkForRock(- 5) === false) {
                 this.y = this.y - rowHeight;
 
                 if (this.y / rowHeight < 4) {
@@ -127,7 +127,7 @@ Player.prototype.handleInput = function (keyStr) {
 
             break;
         case 'down':
-            if (this.y < 400 && this.checkForRock(this.getLocation() + 5) === false) {
+            if (this.y < 400 && this.checkForRock(5) === false) {
                 if (this.y / rowHeight < 4) {
                     score++;
                 }
@@ -136,7 +136,7 @@ Player.prototype.handleInput = function (keyStr) {
             }
             break;
     }
-    this.checkForStar(this.getLocation());
+    this.checkForStar();
     $("#score").text(score);
 
     if (this.y < 80) {
@@ -152,10 +152,11 @@ Player.prototype.getLocation = function () {
 };
 
 // checks for the move wheter applicable or not
-Player.prototype.checkForRock = function (playersNextLocation) {
+// parameter: offset that to find the place from the current place
+Player.prototype.checkForRock = function (offset) {
     for (let index = 0; index < rocks.length; index++) {
         const element = rocks[index];
-        if (element.location === playersNextLocation) {
+        if (element.location === this.getLocation + playersNextLocation) {
             return true;
         }
     }
@@ -164,13 +165,14 @@ Player.prototype.checkForRock = function (playersNextLocation) {
 };
 
 // checks for a gem
-Player.prototype.checkForStar = function (playersNextLocation) {
+Player.prototype.checkForStar = function () {
+    let location = this.getLocation();
     for (let index = 0; index < stars.length; index++) {
         const element = stars[index];
-        if (element.location === playersNextLocation) {
+        if (element.location === location) {
             score = score + 2;
-            let row = Math.floor(playersNextLocation / 5);
-            let column = playersNextLocation - (row * 5);
+            let row = Math.floor(location / 5);
+            let column = location - (row * 5);
             ctx.drawImage(Resources.get('images/stone-block.png'), column * columnWidth, row * rowHeight);
             stars.splice(index, 1);
         }
@@ -179,7 +181,7 @@ Player.prototype.checkForStar = function (playersNextLocation) {
 
 // rock object
 var Rock = function () {
-    // intial position of the player
+    // intial position of the rock
     this.x = -1;
     this.y = -1;
 
@@ -201,7 +203,7 @@ var Star = function () {
     // the added value of the star
     this.value = 1;
 
-    // intial position of the player
+    // intial position of the star
     this.x = -1;
     this.y = -1;
 
